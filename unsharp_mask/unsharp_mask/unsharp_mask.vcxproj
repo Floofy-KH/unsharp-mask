@@ -154,11 +154,15 @@
   <ItemGroup>
     <ClInclude Include="add_weighted.hpp" />
     <ClInclude Include="blur.hpp" />
+    <ClInclude Include="OpenCLUtils.h" />
     <ClInclude Include="ppm.hpp" />
     <ClInclude Include="unsharp_mask.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="unsharp_mask.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Blur.cl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
