@@ -35,7 +35,7 @@ void unsharp_mask(unsigned char *out, const unsigned char *in,
   cl_int error = 0;
   size_t size = w*h*nchannels;
   unsigned char *buffer3 = new unsigned char[size];
-  size_t globalWorkSizes[] = { w, h, blur_radius*2 };
+  size_t globalWorkSizes[] = { w, h };
   cl_kernel blurKernel = clCreateKernel(program, "blurKernel", &error);
   checkErr(error, "Create blur kernel");
   cl_mem buffer1 = clCreateBuffer(context, CL_MEM_READ_WRITE, size, NULL, &error);

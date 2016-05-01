@@ -112,7 +112,8 @@
       <AdditionalDependencies>OpenCL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(AMDAPPSDKROOT)bin\x86_64\OpenCL.dll" "$(OutputPath)OpenCL.dll"</Command>
+      <Command>copy /Y "$(AMDAPPSDKROOT)bin\x86_64\OpenCL.dll" "$(OutputPath)OpenCL.dll"
+copy /Y "$(ProjectDir)*.cl" "$(TargetDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

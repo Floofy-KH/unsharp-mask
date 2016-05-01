@@ -179,12 +179,11 @@ int main(int argc, char *argv[])
   const char *ifilename = argc > 1 ?           argv[1] : images[CURRENT_IMAGE];
   const char *ofilename = argc > 2 ?           argv[2] : outputImage;
   const int blur_radius = argc > 3 ?		   std::atoi(argv[3]) : 5;
-  const bool on_gpu = argc > 4 ? std::strcmp(argv[4],"gpu") == 0 : false;
+  const bool on_gpu = argc > 4 ? std::strcmp(argv[4],"cpu") != 0 : true;
 
   cl_context clContext = nullptr;
   cl_program program = nullptr;
   cl_command_queue clQueue = nullptr;
-  cl_mem buffer = nullptr;
 
   ppm img;
   std::vector<unsigned char> data_in, data_sharp;
