@@ -34,6 +34,7 @@ void unsharp_mask(unsigned char *out, const unsigned char *in,
 {
   cl_int error = 0;
   size_t size = w*h*nchannels;
+  unsigned char *buffer3 = new unsigned char[size];
   size_t globalWorkSizes[] = { w, h };
   cl_kernel blurKernel = clCreateKernel(program, "blurKernel", &error);
   checkErr(error, "Create blur kernel");
@@ -56,7 +57,8 @@ void unsharp_mask(unsigned char *out, const unsigned char *in,
   clSetKernelArg(blurKernel, 1, size, &buffer1);
   error = clEnqueueNDRangeKernel(commandQueue, blurKernel, 2, NULL, globalWorkSizes, NULL, NULL, NULL, NULL);
   
-  clEnqueueReadBuffer(commandQueue, buffer2, true, 0, size, out, 0, NULL, NULL);
+  clEnqueueReadBuffer(commandQueue, buffer2, true, 0, size, buffer3, 0, NULL, NULL);
+  add_weighted(out, in, 1.5f, buffer3, -0.5f, 0.0f, w, h, nchannels);
 
   error = clReleaseMemObject(buffer1);
   checkErr(error, "Releasing buffer1");

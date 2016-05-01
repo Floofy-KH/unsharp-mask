@@ -129,7 +129,7 @@ cl_program createProgram(cl_context context)
   const int numFiles = 1;
   const char *files[numFiles] = 
   {
-    "Rawr",
+    "Blur.cl",
   };
 
   char *source[numFiles];
@@ -140,15 +140,36 @@ cl_program createProgram(cl_context context)
     std::ifstream file(files[i]);
     file.seekg(0, file.end);
     int length = file.tellg();
+    //The length given is wrong. Don't know why.....
+    length -= 26;
     file.seekg(0, file.beg);
 
+    source[i] = new char[length+1];
     file.read(source[i], length);
-    lengths[i] = length;
+    source[i][length] = '\0';
+    lengths[i] = length+1;
   }
   
   cl_int error = 0;
   cl_program program = clCreateProgramWithSource(context, numFiles, (const char**)source, lengths, &error);
   checkErr(error, "Create program");
+
+  error = clBuildProgram(program, 1, &deviceId, NULL, NULL, NULL);
+  if (error != CL_SUCCESS)
+  {
+    // Determine the size of the log
+    size_t log_size;
+    clGetProgramBuildInfo(program, deviceId, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
+
+    // Allocate memory for the log
+    char *log = new char[log_size];
+
+    // Get the log
+    clGetProgramBuildInfo(program, deviceId, CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
+
+    // Print the log
+    std::cout << log << std::endl;
+  }
 
   return program;
 }
@@ -184,8 +205,16 @@ int main(int argc, char *argv[])
   std::cout << "Applying unsharp mask...\n";
   auto t1 = std::chrono::steady_clock::now();
 
-  unsharp_mask(data_sharp.data(), data_in.data(), blur_radius,
-               img.w, img.h, img.nchannels);
+  if (on_gpu)
+  {
+    unsharp_mask(data_sharp.data(), data_in.data(), blur_radius,
+      img.w, img.h, img.nchannels, clContext, clQueue, program);
+  }
+  else
+  {
+    unsharp_mask(data_sharp.data(), data_in.data(), blur_radius,
+      img.w, img.h, img.nchannels);
+  }
 
   auto t2 = std::chrono::steady_clock::now();
   std::cout << std::chrono::duration<double>(t2-t1).count() << " seconds.\n";
@@ -193,12 +222,15 @@ int main(int argc, char *argv[])
   std::cout << "Saving result to " << ofilename << "...\n";
   img.write(ofilename, data_sharp);
 
-  if (on_gpu)
+  /*if (on_gpu)
   {
-    clReleaseCommandQueue(clQueue);
-    clReleaseProgram(program);
-    clReleaseContext(clContext);
-  }
+    if(clQueue != nullptr)
+      clReleaseCommandQueue(clQueue);
+    if (program != nullptr)
+      clReleaseProgram(program);
+    if (clContext != nullptr)
+      clReleaseContext(clContext);
+  }*/
   
   return 0;
 }

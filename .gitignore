@@ -235,3 +235,4 @@ _Pvt_Extensions
 # FAKE - F# Make
 .fake/
 /unsharp_mask/unsharp_mask/lena-processed.ppm
+*.ppm
