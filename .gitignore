@@ -11,12 +11,6 @@
 *.userprefs
 
 # Build results
-[Dd]ebug/
-[Dd]ebugPublic/
-[Rr]elease/
-[Rr]eleases/
-x64/
-x86/
 bld/
 [Bb]in/
 [Oo]bj/
@@ -236,3 +230,6 @@ _Pvt_Extensions
 .fake/
 /unsharp_mask/unsharp_mask/lena-processed.ppm
 *.ppm
+*.enc
+/unsharp_mask/unsharp_mask/x64/Debug/unsharp_mask.tlog
+/unsharp_mask/unsharp_mask/x64/Debug

@@ -195,7 +195,7 @@ int main(int argc, char *argv[])
   {
     cl_int error = 0;
     clContext = createContext();
-    clCreateCommandQueue(clContext, deviceId, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &error);
+    clQueue = clCreateCommandQueue(clContext, deviceId, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &error);
     checkErr(error, "Initialise command queue");
     program = createProgram(clContext);
   }

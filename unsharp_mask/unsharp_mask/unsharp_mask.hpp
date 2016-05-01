@@ -35,7 +35,7 @@ void unsharp_mask(unsigned char *out, const unsigned char *in,
   cl_int error = 0;
   size_t size = w*h*nchannels;
   unsigned char *buffer3 = new unsigned char[size];
-  size_t globalWorkSizes[] = { w, h };
+  size_t globalWorkSizes[] = { w, h, blur_radius*2 };
   cl_kernel blurKernel = clCreateKernel(program, "blurKernel", &error);
   checkErr(error, "Create blur kernel");
   cl_mem buffer1 = clCreateBuffer(context, CL_MEM_READ_WRITE, size, NULL, &error);
@@ -45,17 +45,20 @@ void unsharp_mask(unsigned char *out, const unsigned char *in,
 
   clEnqueueWriteBuffer(commandQueue, buffer1, true, 0, size, in, 0, NULL, NULL);
 
-  clSetKernelArg(blurKernel, 0, size, &buffer2);
-  clSetKernelArg(blurKernel, 1, size, &buffer1);
-  clSetKernelArg(blurKernel, 2, sizeof(int), &blur_radius);
-  clSetKernelArg(blurKernel, 3, sizeof(unsigned), &nchannels);
+  checkErr(clSetKernelArg(blurKernel, 0, sizeof(buffer2), &buffer2), "Set out kernel arg");
+  checkErr(clSetKernelArg(blurKernel, 1, sizeof(buffer1), &buffer1), "Set in kernel arg");
+  checkErr(clSetKernelArg(blurKernel, 2, sizeof(int), &blur_radius), "Set blur radius kernel arg");
+  checkErr(clSetKernelArg(blurKernel, 3, sizeof(unsigned), &nchannels), "Set num channels kernel arg");
   error = clEnqueueNDRangeKernel(commandQueue, blurKernel, 2, NULL, globalWorkSizes, NULL, NULL, NULL, NULL);
-  clSetKernelArg(blurKernel, 0, size, &buffer1);
-  clSetKernelArg(blurKernel, 1, size, &buffer2);
+  checkErr(error, "Blur 1");
+  checkErr(clSetKernelArg(blurKernel, 0, sizeof(buffer1), &buffer1), "Set out kernel arg");
+  checkErr(clSetKernelArg(blurKernel, 1, sizeof(buffer2), &buffer2), "Set in kernel arg");
   error = clEnqueueNDRangeKernel(commandQueue, blurKernel, 2, NULL, globalWorkSizes, NULL, NULL, NULL, NULL);
-  clSetKernelArg(blurKernel, 0, size, &buffer2);
-  clSetKernelArg(blurKernel, 1, size, &buffer1);
+  checkErr(error, "Blur 2");
+  checkErr(clSetKernelArg(blurKernel, 0, sizeof(buffer2), &buffer2), "Set out kernel arg");
+  checkErr(clSetKernelArg(blurKernel, 1, sizeof(buffer1), &buffer1), "Set in kernel arg");
   error = clEnqueueNDRangeKernel(commandQueue, blurKernel, 2, NULL, globalWorkSizes, NULL, NULL, NULL, NULL);
+  checkErr(error, "Blur 3");
   
   clEnqueueReadBuffer(commandQueue, buffer2, true, 0, size, buffer3, 0, NULL, NULL);
   add_weighted(out, in, 1.5f, buffer3, -0.5f, 0.0f, w, h, nchannels);

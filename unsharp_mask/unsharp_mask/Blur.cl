@@ -1,4 +1,4 @@
-__kernel void blurKernel(__global unsigned char *out, __global unsigned char * in, int blurRadius, uint nChannels)
+__kernel void blurKernel(__global unsigned char *out, __global unsigned char *in, int blurRadius, uint nChannels)
 {
   size_t x = get_global_id(0);
   size_t w = get_global_size(0);
