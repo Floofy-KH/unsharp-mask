@@ -141,7 +141,7 @@ cl_program createProgram(cl_context context)
     file.seekg(0, file.end);
     int length = file.tellg();
     //The length given is wrong. Don't know why.....
-    length -= 34;
+    length -= 26;
     file.seekg(0, file.beg);
 
     source[i] = new char[length+1];

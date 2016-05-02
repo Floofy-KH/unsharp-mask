@@ -35,10 +35,8 @@ void unsharp_mask(unsigned char *out, const unsigned char *in,
   cl_int error = 0;
   size_t size = w*h*nchannels;
   unsigned char *buffer3 = new unsigned char[size];
-  const cl_uint workDim = 3;
-  int blurDiameter = blur_radius * 2;
-  size_t globalWorkSizes[workDim] = { w, h, blurDiameter*blurDiameter };
-  size_t workGroupSizes[workDim] = {1, 1, blurDiameter*blurDiameter };
+  const cl_uint workDim = 2;
+  size_t globalWorkSizes[workDim] = { w, h,};
   cl_kernel blurKernel = clCreateKernel(program, "blurKernel", &error);
   checkErr(error, "Create blur kernel");
   cl_mem buffer1 = clCreateBuffer(context, CL_MEM_READ_WRITE, size, NULL, &error);
@@ -52,15 +50,15 @@ void unsharp_mask(unsigned char *out, const unsigned char *in,
   checkErr(clSetKernelArg(blurKernel, 1, sizeof(buffer1), &buffer1), "Set in kernel arg");
   checkErr(clSetKernelArg(blurKernel, 2, sizeof(int), &blur_radius), "Set blur radius kernel arg");
   checkErr(clSetKernelArg(blurKernel, 3, sizeof(unsigned), &nchannels), "Set num channels kernel arg");
-  error = clEnqueueNDRangeKernel(commandQueue, blurKernel, workDim, NULL, globalWorkSizes, workGroupSizes, NULL, NULL, NULL);
+  error = clEnqueueNDRangeKernel(commandQueue, blurKernel, workDim, NULL, globalWorkSizes, NULL, NULL, NULL, NULL);
   checkErr(error, "Blur 1");
   checkErr(clSetKernelArg(blurKernel, 0, sizeof(buffer1), &buffer1), "Set out kernel arg");
   checkErr(clSetKernelArg(blurKernel, 1, sizeof(buffer2), &buffer2), "Set in kernel arg");
-  error = clEnqueueNDRangeKernel(commandQueue, blurKernel, workDim, NULL, globalWorkSizes, workGroupSizes, NULL, NULL, NULL);
+  error = clEnqueueNDRangeKernel(commandQueue, blurKernel, workDim, NULL, globalWorkSizes, NULL, NULL, NULL, NULL);
   checkErr(error, "Blur 2");
   checkErr(clSetKernelArg(blurKernel, 0, sizeof(buffer2), &buffer2), "Set out kernel arg");
   checkErr(clSetKernelArg(blurKernel, 1, sizeof(buffer1), &buffer1), "Set in kernel arg");
-  error = clEnqueueNDRangeKernel(commandQueue, blurKernel, workDim, NULL, globalWorkSizes, workGroupSizes, NULL, NULL, NULL);
+  error = clEnqueueNDRangeKernel(commandQueue, blurKernel, workDim, NULL, globalWorkSizes, NULL, NULL, NULL, NULL);
   checkErr(error, "Blur 3");
   
   clEnqueueReadBuffer(commandQueue, buffer2, true, 0, size, buffer3, 0, NULL, NULL);
