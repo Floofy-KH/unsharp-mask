@@ -141,7 +141,7 @@ cl_program createProgram(cl_context context)
     file.seekg(0, file.end);
     int length = file.tellg();
     //The length given is wrong. Don't know why.....
-    length -= 26;
+    length -= 34;
     file.seekg(0, file.beg);
 
     source[i] = new char[length+1];
@@ -169,6 +169,8 @@ cl_program createProgram(cl_context context)
 
     // Print the log
     std::cout << log << std::endl;
+
+    exit(EXIT_FAILURE);
   }
 
   return program;
@@ -194,7 +196,7 @@ int main(int argc, char *argv[])
   {
     cl_int error = 0;
     clContext = createContext();
-    clQueue = clCreateCommandQueue(clContext, deviceId, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, &error);
+    clQueue = clCreateCommandQueue(clContext, deviceId, NULL, &error);
     checkErr(error, "Initialise command queue");
     program = createProgram(clContext);
   }
