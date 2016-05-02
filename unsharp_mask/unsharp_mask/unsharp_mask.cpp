@@ -1,4 +1,6 @@
 #include "unsharp_mask.hpp"
+#include "blur.cl"
+#include "add_weighted_float.cl"
 #include <chrono>
 #include <fstream>
 
@@ -126,30 +128,42 @@ cl_context createContext()
 
 cl_program createProgram(cl_context context)
 {
-  const int numFiles = 1;
-  const char *files[numFiles] = 
+  const int numFiles = 2;
+  const char *source[numFiles];
+  size_t lengths[numFiles];
+  /*const char *files[numFiles] = 
   {
-    "Blur.cl",
+    "blur.cl",
+    "add_weighted_float.cl"
   };
 
-  char *source[numFiles];
-  size_t lengths[numFiles];
 
   for (int i = 0; i < numFiles; ++i)
   {
-    std::ifstream file(files[i]);
-    file.seekg(0, file.end);
-    int length = file.tellg();
-    //The length given is wrong. Don't know why.....
-    length -= 26;
-    file.seekg(0, file.beg);
+    std::ifstream file(files[i], std::ios::in | std::ios::ate);
+    if (file.is_open())
+    {
+      std::streampos length = file.tellg();
+      file.seekg(0, file.beg);
 
-    source[i] = new char[length+1];
-    file.read(source[i], length);
-    source[i][length] = '\0';
-    lengths[i] = length+1;
-  }
+      source[i] = new char[length];
+      file.read(source[i], length);
+      lengths[i] = length;
+      file.close();
+    }
+    else
+    {
+      std::cerr << "Failed to open file: " << files[i] << "... Aborting." << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }*/
   
+  std::string blurSourceStr(blurSource);
+  std::string addWeightedFloatSourceStr(addWeightedFloatSource);
+  source[0] = blurSource;
+  source[1] = addWeightedFloatSource;
+  lengths[0] = blurSourceStr.length();
+  lengths[1] = addWeightedFloatSourceStr.length();
   cl_int error = 0;
   cl_program program = clCreateProgramWithSource(context, numFiles, (const char**)source, lengths, &error);
   checkErr(error, "Create program");

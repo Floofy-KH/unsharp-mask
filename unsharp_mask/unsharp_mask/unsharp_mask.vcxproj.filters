@@ -40,7 +40,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Blur.cl">
+    <None Include="add_weighted_float.cl">
+      <Filter>Kernels</Filter>
+    </None>
+    <None Include="blur.cl">
       <Filter>Kernels</Filter>
     </None>
   </ItemGroup>

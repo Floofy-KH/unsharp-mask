@@ -34,9 +34,10 @@ void unsharp_mask(unsigned char *out, const unsigned char *in,
 {
   cl_int error = 0;
   size_t size = w*h*nchannels;
-  unsigned char *buffer3 = new unsigned char[size];
+  //Initialise work dimensions
   const cl_uint workDim = 2;
   size_t globalWorkSizes[workDim] = { w, h,};
+  //Create blur kernel and buffers
   cl_kernel blurKernel = clCreateKernel(program, "blurKernel", &error);
   checkErr(error, "Create blur kernel");
   cl_mem buffer1 = clCreateBuffer(context, CL_MEM_READ_WRITE, size, NULL, &error);
@@ -44,8 +45,10 @@ void unsharp_mask(unsigned char *out, const unsigned char *in,
   cl_mem buffer2 = clCreateBuffer(context, CL_MEM_READ_WRITE, size, NULL, &error);
   checkErr(error, "Initialise buffer2");
 
+  //Write image data to buffer
   clEnqueueWriteBuffer(commandQueue, buffer1, true, 0, size, in, 0, NULL, NULL);
 
+  //Write parameters for blur kernal and run blur kernel three times
   checkErr(clSetKernelArg(blurKernel, 0, sizeof(buffer2), &buffer2), "Set out kernel arg");
   checkErr(clSetKernelArg(blurKernel, 1, sizeof(buffer1), &buffer1), "Set in kernel arg");
   checkErr(clSetKernelArg(blurKernel, 2, sizeof(int), &blur_radius), "Set blur radius kernel arg");
@@ -60,15 +63,39 @@ void unsharp_mask(unsigned char *out, const unsigned char *in,
   checkErr(clSetKernelArg(blurKernel, 1, sizeof(buffer1), &buffer1), "Set in kernel arg");
   error = clEnqueueNDRangeKernel(commandQueue, blurKernel, workDim, NULL, globalWorkSizes, NULL, NULL, NULL, NULL);
   checkErr(error, "Blur 3");
-  
-  clEnqueueReadBuffer(commandQueue, buffer2, true, 0, size, buffer3, 0, NULL, NULL);
-  add_weighted(out, in, 1.5f, buffer3, -0.5f, 0.0f, w, h, nchannels);
+
+  //Initialise kernel, extra buffer and data for adding images
+  float alpha = 1.5f, beta = -0.5f, gamma = 0.0f;
+  cl_kernel addWeightedKernel = clCreateKernel(program, "add_weighted_float", &error);
+  checkErr(error, "Create add_weighted kernel");
+  cl_mem buffer3 = clCreateBuffer(context, CL_MEM_READ_WRITE, size, NULL, &error);
+  checkErr(error, "Initialise buffer3");
+
+  //Reset buffer 1 to the original data
+  clEnqueueWriteBuffer(commandQueue, buffer1, true, 0, size, in, 0, NULL, NULL);
+
+  //Set kernel parameters and run
+  checkErr(clSetKernelArg(addWeightedKernel, 0, sizeof(buffer3), &buffer3), "Set out kernel arg");
+  checkErr(clSetKernelArg(addWeightedKernel, 1, sizeof(buffer1), &buffer1), "Set in1 kernel arg");
+  checkErr(clSetKernelArg(addWeightedKernel, 2, sizeof(float), &alpha), "Set alpha kernel arg");
+  checkErr(clSetKernelArg(addWeightedKernel, 3, sizeof(buffer2), &buffer2), "Set in2 kernel arg");
+  checkErr(clSetKernelArg(addWeightedKernel, 4, sizeof(float), &beta), "Set blur beta kernel arg");
+  checkErr(clSetKernelArg(addWeightedKernel, 5, sizeof(float), &gamma), "Set blur gamma kernel arg");
+  checkErr(clSetKernelArg(addWeightedKernel, 6, sizeof(unsigned), &nchannels), "Set num channels kernel arg");
+  error = clEnqueueNDRangeKernel(commandQueue, addWeightedKernel, workDim, NULL, globalWorkSizes, NULL, NULL, NULL, NULL);
+  checkErr(error, "Add Weighted");
+
+  //Read result into out param.
+  clEnqueueReadBuffer(commandQueue, buffer3, true, 0, size, out, 0, NULL, NULL);
 
   error = clReleaseMemObject(buffer1);
   checkErr(error, "Releasing buffer1");
-  error = clReleaseMemObject(buffer1);
+  error = clReleaseMemObject(buffer2);
   checkErr(error, "Releasing buffer2");
+  error = clReleaseMemObject(buffer3);
+  checkErr(error, "Releasing buffer3");
   clReleaseKernel(blurKernel);
+  clReleaseKernel(addWeightedKernel);
 }
 
 #pragma warning( pop )

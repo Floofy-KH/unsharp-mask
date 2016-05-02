@@ -163,7 +163,8 @@ copy /Y "$(ProjectDir)*.cl" "$(TargetDir)"</Command>
     <ClCompile Include="unsharp_mask.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Blur.cl" />
+    <None Include="add_weighted_float.cl" />
+    <None Include="blur.cl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
